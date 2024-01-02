@@ -24,6 +24,11 @@ public:
 
 	void OnUpdateMyHp_Implementation(float CurHp, float MaxHp);
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnUpdateMyAmmo(int Ammo);
+
+	void OnUpdateMyAmmo_Implementation(int Ammo);
+
 public:
 	// TSubclassOf : 지정한 클래스와 클래스를 상속한 모든 클래스를 지정 가능합니다.
 	// 즉, UUserWidget 클래스와 이 클래스를 상속한 모든 클래스를 지정 가능하다는 의미입니다.

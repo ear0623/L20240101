@@ -6,9 +6,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameMode/ShootingHUD.h"
 
 // Sets default values
-AWeapon::AWeapon()
+AWeapon::AWeapon():m_Ammo(30)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -20,6 +21,7 @@ AWeapon::AWeapon()
 
 	bReplicates = true;
 	SetReplicateMovement(true);
+
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -51,6 +53,9 @@ void AWeapon::EventTrigger_Implementation()
 
 void AWeapon::EventShoot_Implementation()
 {
+	if (false == UseAmmo())
+		return;
+
 	// ÃÑ±â ÀÌÆåÆ® Ãß°¡ ÄÚµå
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_FireEffect, 
 		WeaponMesh->GetSocketLocation("muzzle"),
@@ -79,7 +84,12 @@ void AWeapon::EventShoot_Implementation()
 
 void AWeapon::EventReload_Implementation()
 {
+	
 	m_pOwnChar->PlayAnimMontage(m_ReloadMontage);
+	FTimerManager& timerManager = GetWorld()->GetTimerManager(); 
+	timerManager.SetTimer(th_BindWeapon,this,&AWeapon::ReloadCall,2.17f);
+
+
 }
 
 void AWeapon::EventPickUp_Implementation(ACharacter* pOwnChar)
@@ -88,6 +98,7 @@ void AWeapon::EventPickUp_Implementation(ACharacter* pOwnChar)
 
 	WeaponMesh->SetSimulatePhysics(false);
 	AttachToComponent(pOwnChar->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("weapon"));
+	OnRep_Ammo();
 }
 
 void AWeapon::EventDrop_Implementation(ACharacter* pOwnChar)
@@ -148,4 +159,46 @@ float AWeapon::GetFireStartLenghth()
 		return 0.0f;
 
 	return pArm->TargetArmLength + 100;
+}
+
+bool AWeapon::bIsCanShoot()
+{
+	if (m_Ammo <= 0)
+		return false;
+
+	return true;
+}
+
+bool AWeapon::UseAmmo()
+{
+	if (false == bIsCanShoot())
+		return false;
+	m_Ammo =m_Ammo - 1;
+
+	m_Ammo = FMath::Clamp(m_Ammo, 0, 30);
+
+	OnRep_Ammo();
+	return true;
+}
+
+void AWeapon::ReloadCall()
+{
+	m_Ammo = 30;
+	OnRep_Ammo();
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	if (nullptr ==m_pOwnChar)
+		return;
+
+	APlayerController* pPlayer0 = GetWorld()->GetFirstPlayerController();
+	if (m_pOwnChar->GetController() != pPlayer0)
+		return;
+
+	AShootingHUD* pHUD = Cast<AShootingHUD>(pPlayer0->GetHUD());
+	if (nullptr == pHUD)
+		return;
+
+	pHUD->OnUpdateMyAmmo(m_Ammo);
 }

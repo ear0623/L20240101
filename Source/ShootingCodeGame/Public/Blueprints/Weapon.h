@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+
+
 UCLASS()
 class SHOOTINGCODEGAME_API AWeapon : public AActor, public IWeaponInterface
 {
@@ -58,6 +60,13 @@ public:
 public:
 	float GetFireStartLenghth();
 
+	UFUNCTION(BlueprintPure)
+	bool bIsCanShoot();
+
+	bool UseAmmo();
+
+	void ReloadCall();
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* WeaponMesh;
@@ -79,4 +88,12 @@ public:
 	// 총기 발사 사운드 추가
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USoundBase* m_SoundBase;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
+	int m_Ammo;
+
+	FTimerHandle th_BindWeapon;
 };
