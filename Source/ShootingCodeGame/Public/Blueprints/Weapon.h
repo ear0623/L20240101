@@ -40,7 +40,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void EventReload();
 
-	virtual void EventReload_Implementation() override;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void EventResetAmmo();
+
+	virtual void EventResetAmmo_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void EventPickUp(ACharacter* pOwnChar);
@@ -65,14 +68,17 @@ public:
 
 	bool UseAmmo();
 
-	void ReloadCall();
+	void SetAmmo(int Ammo);
+
+	UFUNCTION(BlueprintCallable)
+	void OnUpdateAmmoToHud(int Ammo);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* WeaponMesh;
 
 	// 캐릭터 저장을 위한 변수
-	UPROPERTY(Replicated, BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite)
 	ACharacter* m_pOwnChar;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

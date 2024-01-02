@@ -11,7 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Blueprint/UserWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "GameMode/ShootingPlayerState.h"
 #include "Blueprints/Weapon.h"
@@ -83,6 +83,14 @@ void AShootingCodeGameCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	check(NameTagClass);
+
+	NameTagWidget = CreateWidget<UUserWidget>(GetWorld(), NameTagClass);
+	NameTagWidget->AddToViewport();
+
+	FTimerManager& timerManager = GetWorld()->GetTimerManager();
+	timerManager.SetTimer(th_Nametag, this, &AShootingCodeGameCharacter::EventUpdateNameTag, 0.01f, true);
+	//HP추가
 }
 
 void AShootingCodeGameCharacter::Tick(float DeltaSeconds)
@@ -138,6 +146,11 @@ void AShootingCodeGameCharacter::RequestTakeWeapon_Implementation()
 	if (false == IsValid(pNearestActor))
 		return;
 
+	if (nullptr != m_EquipWeapon)
+	{
+		m_EquipWeapon->SetOwner(nullptr);
+	}
+
 	pNearestActor->SetOwner(GetController());
 
 	ResponseTakeWeapon(pNearestActor);
@@ -148,6 +161,17 @@ void AShootingCodeGameCharacter::ResponseTakeWeapon_Implementation(AActor* PickA
 {
 	GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::White, TEXT("Junsik Babo Res ResponseTakeWeapon"));
 	
+	if (nullptr != m_EquipWeapon)
+	{
+		IWeaponInterface* InterfaceObj = Cast<IWeaponInterface>(m_EquipWeapon);
+
+		if (nullptr == InterfaceObj)
+			return;
+
+		InterfaceObj->Execute_EventDrop(m_EquipWeapon, this);
+		m_EquipWeapon = nullptr;
+	}
+
 	m_EquipWeapon = PickActor;
 
 	IWeaponInterface* InterfaceObj = Cast<IWeaponInterface>(m_EquipWeapon);
@@ -176,19 +200,15 @@ void AShootingCodeGameCharacter::DropWeapon(const FInputActionValue& Value)
 void AShootingCodeGameCharacter::RequestDropWeapon_Implementation()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::White, TEXT("Junsik Babo Request DropWeapon"));
-	AActor* pNearestActor = FindNearestWeapon();
-
-	if (false == IsValid(pNearestActor))
+	if (false == IsValid(m_EquipWeapon))
 		return;
-
-	ResponseDropWeapon(pNearestActor);
+	m_EquipWeapon->SetOwner(nullptr);
+	ResponseDropWeapon();
 }
 
-void AShootingCodeGameCharacter::ResponseDropWeapon_Implementation(AActor* PickActor)
+void AShootingCodeGameCharacter::ResponseDropWeapon_Implementation()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::White, TEXT("Junsik Babo Response DropWeapon"));
-
-	m_EquipWeapon = PickActor;
 
 	IWeaponInterface* InterfaceObj = Cast<IWeaponInterface>(m_EquipWeapon);
 
@@ -196,6 +216,7 @@ void AShootingCodeGameCharacter::ResponseDropWeapon_Implementation(AActor* PickA
 		return;
 
 	InterfaceObj->Execute_EventDrop(m_EquipWeapon, this);
+	m_EquipWeapon = nullptr;
 }
 
 void AShootingCodeGameCharacter::ResponseDropWeaponClient_Implementation()
@@ -384,6 +405,9 @@ AActor* AShootingCodeGameCharacter::FindNearestWeapon()
 	AActor* pNearestActor = nullptr;
 	for (AActor* pTarget : actors)
 	{
+		if (m_EquipWeapon == pTarget)
+			continue;
+
 		// 거리 구하는 기능을 이용합니다.(FVector::Distance)
 		// 오버랩 된 액터로부터 무기 까지의 거리 구하는 함수
 		double dist = FVector::Distance(GetActorLocation(), pTarget->GetActorLocation());
@@ -396,4 +420,31 @@ AActor* AShootingCodeGameCharacter::FindNearestWeapon()
 	}
 
 	return pNearestActor;
+}
+
+void AShootingCodeGameCharacter::EventUpdateNameTag_Implementation()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Implementation"));
+}
+
+void AShootingCodeGameCharacter::EventUpdateNameTagHP_Implementation(float CurHP, float MaxHp)
+{
+
+}
+
+void AShootingCodeGameCharacter::BindPlayerState()
+{
+	APlayerController* FirstPlayerController = GetWorld()->GetFirstPlayerController();
+	if (IsValid(FirstPlayerController))
+	{ 
+		AShootingPlayerState* ps = Cast<AShootingPlayerState>(FirstPlayerController->PlayerState); 
+		if (IsValid(ps))
+		{
+			ps->m_Dele_UpdateHp.AddDynamic(this, &AShootingCodeGameCharacter::EventUpdateNameTagHP);
+			EventUpdateNameTagHP(ps->m_CurHp, 100);
+		}
+	}
+	
+
+
 }

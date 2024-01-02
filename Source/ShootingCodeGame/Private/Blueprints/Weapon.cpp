@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameMode/ShootingHUD.h"
 
+
 // Sets default values
 AWeapon::AWeapon():m_Ammo(30)
 {
@@ -29,7 +30,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 아래의 함수를 사용해서 서버에서 동기화를 시켜줍니다.
-	DOREPLIFETIME(AWeapon, m_pOwnChar);
+	DOREPLIFETIME(AWeapon, m_Ammo);
 }
 
 // Called when the game starts or when spawned
@@ -53,7 +54,7 @@ void AWeapon::EventTrigger_Implementation()
 
 void AWeapon::EventShoot_Implementation()
 {
-	if (false == UseAmmo())
+	if (false == bIsCanShoot())
 		return;
 
 	// 총기 이펙트 추가 코드
@@ -68,6 +69,8 @@ void AWeapon::EventShoot_Implementation()
 
 	// 플레이어 카메라를 가져오기 위해서 컨트롤러를 가져옵니다.
 	APlayerController* pPlayer0 = GetWorld()->GetFirstPlayerController();
+	if (pPlayer0 != m_pOwnChar->GetController())
+		return;
 
 	// 이제 위에서 가져온 플레이어 변수로부터 카메라 위치와 방향을 가져옵니다.
 	FVector CameraLoc = pPlayer0->PlayerCameraManager->GetCameraLocation();
@@ -86,31 +89,38 @@ void AWeapon::EventReload_Implementation()
 {
 	
 	m_pOwnChar->PlayAnimMontage(m_ReloadMontage);
-	FTimerManager& timerManager = GetWorld()->GetTimerManager(); 
-	timerManager.SetTimer(th_BindWeapon,this,&AWeapon::ReloadCall,2.17f);
+	//FTimerManager& timerManager = GetWorld()->GetTimerManager(); 
+	//timerManager.SetTimer(th_BindWeapon,this,&AWeapon::ReloadCall,2.17f);
+}
 
-
+void AWeapon::EventResetAmmo_Implementation()
+{
+	SetAmmo(30);
 }
 
 void AWeapon::EventPickUp_Implementation(ACharacter* pOwnChar)
 {
 	m_pOwnChar = pOwnChar;
-
+	m_pOwnChar->bUseControllerRotationYaw = true;
 	WeaponMesh->SetSimulatePhysics(false);
 	AttachToComponent(pOwnChar->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("weapon"));
-	OnRep_Ammo();
+	OnUpdateAmmoToHud(m_Ammo);
 }
 
 void AWeapon::EventDrop_Implementation(ACharacter* pOwnChar)
 {
-	m_pOwnChar = nullptr;
-
+	OnUpdateAmmoToHud(0);
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	WeaponMesh->SetSimulatePhysics(true);
-	AttachToComponent(pOwnChar->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("weapon"));
+	m_pOwnChar->bUseControllerRotationYaw = false;
+	m_pOwnChar = nullptr;
+	
 }
 
 void AWeapon::ReqShoot_Implementation(FVector vStart, FVector vEnd)
 {
+	if (false == UseAmmo())
+		return;
 	// Hit 된 물체를 담기 위한 변수
 	FHitResult result;
 
@@ -181,15 +191,16 @@ bool AWeapon::UseAmmo()
 	return true;
 }
 
-void AWeapon::ReloadCall()
+
+void AWeapon::SetAmmo(int Ammo)
 {
-	m_Ammo = 30;
+	m_Ammo = Ammo;
 	OnRep_Ammo();
 }
 
-void AWeapon::OnRep_Ammo()
+void AWeapon::OnUpdateAmmoToHud(int Ammo)
 {
-	if (nullptr ==m_pOwnChar)
+	if (nullptr == m_pOwnChar)
 		return;
 
 	APlayerController* pPlayer0 = GetWorld()->GetFirstPlayerController();
@@ -201,4 +212,9 @@ void AWeapon::OnRep_Ammo()
 		return;
 
 	pHUD->OnUpdateMyAmmo(m_Ammo);
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	OnUpdateAmmoToHud(m_Ammo);
 }
