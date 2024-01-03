@@ -90,7 +90,7 @@ void AShootingCodeGameCharacter::BeginPlay()
 
 	FTimerManager& timerManager = GetWorld()->GetTimerManager();
 	timerManager.SetTimer(th_Nametag, this, &AShootingCodeGameCharacter::EventUpdateNameTag, 0.01f, true);
-	//HP추가
+	BindPlayerState();
 }
 
 void AShootingCodeGameCharacter::Tick(float DeltaSeconds)
@@ -434,17 +434,15 @@ void AShootingCodeGameCharacter::EventUpdateNameTagHP_Implementation(float CurHP
 
 void AShootingCodeGameCharacter::BindPlayerState()
 {
-	APlayerController* FirstPlayerController = GetWorld()->GetFirstPlayerController();
-	if (IsValid(FirstPlayerController))
-	{ 
-		AShootingPlayerState* ps = Cast<AShootingPlayerState>(FirstPlayerController->PlayerState); 
-		if (IsValid(ps))
-		{
-			ps->m_Dele_UpdateHp.AddDynamic(this, &AShootingCodeGameCharacter::EventUpdateNameTagHP);
-			EventUpdateNameTagHP(ps->m_CurHp, 100);
-		}
+	AShootingPlayerState* pPs = Cast<AShootingPlayerState>(GetPlayerState());
+	if (IsValid(pPs))
+	{
+		pPs->m_Dele_UpdateHp.AddDynamic(this, &AShootingCodeGameCharacter::EventUpdateNameTagHP);
+		EventUpdateNameTagHP(pPs->m_CurHp, 100);
+		return;
 	}
+	FTimerManager& timerManager = GetWorld()->GetTimerManager();
+	// 타이머 세팅 - 타이머 변수, 하는 행위 PlayerController 0번 즉 자기 자신, 시간은 0.01초 후에, 반복은 하지 않음
+	timerManager.SetTimer(th_BindPlayerState, this, &AShootingCodeGameCharacter::BindPlayerState, 0.01f, false);
 	
-
-
 }

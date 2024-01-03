@@ -175,5 +175,7 @@ public:
 	UUserWidget* NameTagWidget;
 
 	FTimerHandle th_Nametag;
+
+	FTimerHandle th_BindPlayerState;
 };
 
