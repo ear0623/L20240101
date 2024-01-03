@@ -31,9 +31,12 @@ void AShootingHUD::BindMyPlayerState()
 		{
 			// 가져온 PlayerState 인 ps 에 바인딩 해줄 이벤트를 지정해줍니다.(주소로 함수명을 겁니다)
 			ps->m_Dele_UpdateHp.AddDynamic(this, &AShootingHUD::OnUpdateMyHp);
+			ps->m_Dele_UpdateMag.AddDynamic(this, &AShootingHUD::OnUpdateMyMag);
+			ps->m_Dele_UpdateHeal.AddDynamic(this, &AShootingHUD::OnUpdateMyHeal);
 
 			// 바인딩 성공시 초기 HP 값 세팅
 			OnUpdateMyHp(ps->m_CurHp, 100);
+			OnUpdateMyMag(ps->m_Mag);
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AShootingHUD Bind Success!"));
 			return;
 		}
@@ -50,5 +53,13 @@ void AShootingHUD::OnUpdateMyHp_Implementation(float CurHp, float MaxHp)
 }
 
 void AShootingHUD::OnUpdateMyAmmo_Implementation(int Ammo)
+{
+}
+
+void AShootingHUD::OnUpdateMyMag_Implementation(int Mag)
+{
+}
+
+void AShootingHUD::OnUpdateMyHeal_Implementation(float CurHp, float MaxHp)
 {
 }

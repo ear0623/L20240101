@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameMode/ShootingHUD.h"
+#include "GameMode/ShootingPlayerState.h"
 
 
 // Sets default values
@@ -95,7 +96,7 @@ void AWeapon::EventReload_Implementation()
 
 void AWeapon::EventResetAmmo_Implementation()
 {
-	SetAmmo(30);
+	ReqReload();
 }
 
 void AWeapon::EventPickUp_Implementation(ACharacter* pOwnChar)
@@ -157,6 +158,16 @@ void AWeapon::ReqShoot_Implementation(FVector vStart, FVector vEnd)
 
 	// Hit 된 캐릭터, 데미지 수치, 데미지를 준 캐릭터, 데미지를 준 주체, 데미지 종류(수류탄, 총 등..) 지금은 기본값으로
 	UGameplayStatics::ApplyDamage(pHitChar, 10.0f, m_pOwnChar->GetController(), this, UDamageType::StaticClass());
+}
+
+void AWeapon::ReqReload_Implementation()
+{
+	AShootingPlayerState* pPs = Cast<AShootingPlayerState>(m_pOwnChar->GetPlayerState());
+	if (IsValid(pPs))
+	{
+		pPs->UseMag(m_Ammo);
+	}
+	SetAmmo(pPs->m_Ammo);
 }
 
 float AWeapon::GetFireStartLenghth()

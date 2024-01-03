@@ -60,6 +60,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ReqShoot(FVector vStart, FVector vEnd);
 
+
+	UFUNCTION(Server, Reliable)
+	void ReqReload();
+
 public:
 	float GetFireStartLenghth();
 

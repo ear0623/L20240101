@@ -437,12 +437,43 @@ void AShootingCodeGameCharacter::BindPlayerState()
 	AShootingPlayerState* pPs = Cast<AShootingPlayerState>(GetPlayerState());
 	if (IsValid(pPs))
 	{
-		pPs->m_Dele_UpdateHp.AddDynamic(this, &AShootingCodeGameCharacter::EventUpdateNameTagHP);
+		pPs->m_Dele_UpdateHp.AddDynamic(this, &AShootingCodeGameCharacter::EventUpdateNameTagHP);//HP를 기준으로 수치계산시에 하나로 할 수 도있다.가 포인트
 		EventUpdateNameTagHP(pPs->m_CurHp, 100);
 		return;
 	}
 	FTimerManager& timerManager = GetWorld()->GetTimerManager();
 	// 타이머 세팅 - 타이머 변수, 하는 행위 PlayerController 0번 즉 자기 자신, 시간은 0.01초 후에, 반복은 하지 않음
 	timerManager.SetTimer(th_BindPlayerState, this, &AShootingCodeGameCharacter::BindPlayerState, 0.01f, false);
+	
+}
+
+void AShootingCodeGameCharacter::EventGetItem_Implementation(EItemType itemtype)
+{
+	AShootingPlayerState* pPs = Cast<AShootingPlayerState>(GetPlayerState());
+	switch (itemtype)
+	{
+	case EItemType::IT_MAG:
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Implementation_Mag")); 
+		if (IsValid(pPs)) 
+		{
+			pPs->AddMag(); 
+		}
+	}
+		break;
+	case EItemType::IT_HEAL:
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Implementation_Heal"));
+		if (IsValid(pPs))
+		{
+			pPs->AddHeal();
+		}
+
+	}
+		break;
+	default:
+		break;
+	}
+
 	
 }

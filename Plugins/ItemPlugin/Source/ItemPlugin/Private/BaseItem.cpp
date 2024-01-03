@@ -3,6 +3,7 @@
 
 #include "BaseItem.h"
 
+
 // Sets default values
 ABaseItem::ABaseItem()
 {
@@ -24,6 +25,7 @@ ABaseItem::ABaseItem()
 	bReplicates = true;
 	SetReplicateMovement(true);
 
+	m_StaticMesh->OnComponentBeginOverlap.AddDynamic(this, &ABaseItem::OnItemBeginOverlap);
 }
 
 // Called when the game starts or when spawned
@@ -39,5 +41,17 @@ void ABaseItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	m_StaticMesh->AddRelativeRotation(FRotator(0.0f, 1.0f, 0.0f));
 
+}
+
+void ABaseItem::OnItemBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	IItemInterface* InterfaceObj = Cast<IItemInterface>(OtherActor);
+
+	if (nullptr == InterfaceObj)
+		return;
+
+	// 인터페이스 호출 - 인자값(객체), 파라미터(우리는 사용하지 않아서 없음)
+	InterfaceObj->Execute_EventGetItem(OtherActor,m_eItemType);
+	
 }
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "ItemInterface.h"
 #include "ShootingCodeGameCharacter.generated.h"
 
 class USpringArmComponent;
@@ -16,7 +17,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AShootingCodeGameCharacter : public ACharacter
+class AShootingCodeGameCharacter : public ACharacter, public IItemInterface
 {
 	GENERATED_BODY()
 
@@ -155,8 +156,15 @@ public:
 
 	void EventUpdateNameTagHP_Implementation(float CurHP, float MaxHp);
 
+
 	void BindPlayerState();
 
+public:
+	//ItemInterface
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void EventGetItem(EItemType itemtype);
+
+	virtual void EventGetItem_Implementation(EItemType itemtype) override;
 public:
 	// 서버에서 클라이언트로 이 값을 보내줍니다.
 	UPROPERTY(Replicated, BlueprintReadWrite)
