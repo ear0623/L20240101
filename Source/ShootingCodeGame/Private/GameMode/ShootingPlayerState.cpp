@@ -5,7 +5,7 @@
 #include "Net/UnrealNetwork.h" // DOREPLIFETIME 사용을 위해 추가
 
 // 생성자에 HP 초기값 지정
-AShootingPlayerState::AShootingPlayerState():m_CurHp(100),m_Mag(0),m_Heal(100)
+AShootingPlayerState::AShootingPlayerState():m_CurHp(100),m_Mag(0),m_Heal(100), m_Ammo(0)
 {
 
 }
@@ -51,31 +51,22 @@ void AShootingPlayerState::AddHeal()
 }
 
 int AShootingPlayerState::UseMag(int Ammo)
-{
-	m_Ammo = Ammo;
-
-	if (Ammo<30 && m_Mag >0)
+{	
+	m_Ammo =Ammo + m_Mag;
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, FString::Printf(TEXT("UseMag = %d"), m_Ammo));
+	
+	if (m_Ammo > 30)
 	{
-		for (int i = 0; i < m_Mag; i++)
-		{
-			if (Ammo < 30)
-			{
-				m_Ammo = Ammo + 1;
-				m_Mag= m_Mag -1;
-				
-			}
-			else
-			{
-			}
-			
-		}
-		OnRep_Mag();
-		return m_Ammo;
+		m_Mag = m_Ammo - 30;
 	}
 	else
 	{
-		return m_Ammo;
+		m_Mag = 0;
 	}
+	m_Ammo = FMath::Clamp(m_Ammo, 0, 30);
+	
+	OnRep_Mag();
+	return m_Ammo;
 }
 
 void AShootingPlayerState::OnRep_CurHp()
