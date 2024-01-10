@@ -64,6 +64,7 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ReqReload();
 
+
 public:
 	float GetFireStartLenghth();
 
