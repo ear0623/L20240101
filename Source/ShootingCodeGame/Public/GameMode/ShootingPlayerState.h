@@ -47,6 +47,8 @@ public:
 	void OnRep_Heal();
 
 
+
+
 public:
 
 	// RepNotify º¯¼ö
@@ -71,4 +73,5 @@ public:
 
 	int m_Ammo;
 
+	
 };

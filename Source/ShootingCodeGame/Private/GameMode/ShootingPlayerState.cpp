@@ -97,3 +97,5 @@ void AShootingPlayerState::OnRep_Heal()
 		m_Dele_UpdateHeal.Broadcast(m_CurHp, 100);
 	}
 }
+
+

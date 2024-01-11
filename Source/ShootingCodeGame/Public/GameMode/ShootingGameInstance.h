@@ -134,7 +134,7 @@ public:
 	void FindOnlineGames();
 
 	UFUNCTION(BlueprintCallable, Category = "Network|Test")
-	void JoinOnlineGame();
+	void JoinOnlineGame(FBlueprintSessionResult SessionResult);
 
 	UFUNCTION(BlueprintCallable, Category = "Network|Test")
 	void DestroySessionAndLeaveGame();
@@ -144,4 +144,14 @@ public:
 	void OnFindSessionResult(const TArray<FBlueprintSessionResult>& SessionResults);
 
 	void OnFindSessionResult_Implementation(const TArray<FBlueprintSessionResult>& SessionResults);
+
+public:
+	FString m_UserName;
+
+	UFUNCTION(BlueprintCallable)
+	void SetUserName(FString name) { m_UserName = name; };
+
+	UFUNCTION(BlueprintPure)	
+	FString GetUserName() { return m_UserName; };
+		
 };
